@@ -1,12 +1,12 @@
 
-## JavaVue后台敏捷开发框架
+## JavaVue后台敏捷开发框架-UI
 
 ### 介绍
-极简的Java后端+Vue前端的后台开发框架
+极简的Java后端+Vue前端的后台开发框架-UI
 
 ### 后端仓库
 
-https://gitee.com/daenmax/quick-java-vue-admin
+[JavaVue后台敏捷开发框架](https://gitee.com/daenmax/quick-java-vue-admin)
 
 ### 开始
 
