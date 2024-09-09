@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 分页列表
 export function apiPage(query) {
   return request({
-    url: '/demo/people/page',
+    url: '/custom/demoPeople/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function apiPage(query) {
 // 全部数据
 export function apiAll(query) {
   return request({
-    url: '/demo/people/all',
+    url: '/custom/demoPeople/all',
     method: 'get',
     params: query
   })
@@ -21,7 +21,7 @@ export function apiAll(query) {
 // 新增
 export function apiAdd(data) {
   return request({
-    url: '/demo/people/add',
+    url: '/custom/demoPeople/add',
     method: 'post',
     data: data
   })
@@ -30,7 +30,7 @@ export function apiAdd(data) {
 // 查询
 export function apiQuery(id) {
   return request({
-    url: '/demo/people/query?id=' + id,
+    url: '/custom/demoPeople/query?id=' + id,
     method: 'get'
   })
 }
@@ -38,7 +38,7 @@ export function apiQuery(id) {
 // 修改
 export function apiEdit(data) {
   return request({
-    url: '/demo/people/edit',
+    url: '/custom/demoPeople/edit',
     method: 'post',
     data: data
   })
@@ -47,7 +47,7 @@ export function apiEdit(data) {
 // 删除
 export function apiRemove(ids) {
   return request({
-    url: '/demo/people/remove',
+    url: '/custom/demoPeople/remove',
     method: 'post',
     data: ids
   })
@@ -56,7 +56,7 @@ export function apiRemove(ids) {
 // 全部删除
 export function apiRemoveAll() {
   return request({
-    url: '/demo/people/removeAll',
+    url: '/custom/demoPeople/removeAll',
     method: 'get'
   })
 }
@@ -64,7 +64,7 @@ export function apiRemoveAll() {
 // 呼叫测试
 export function apiTestCall(ids) {
   return request({
-    url: '/demo/people/testCall',
+    url: '/custom/demoPeople/testCall',
     method: 'post',
     data: ids
   })
@@ -73,7 +73,7 @@ export function apiTestCall(ids) {
 // 复制人员信息
 export function apiCopyInfo(data) {
   return request({
-    url: '/demo/people/copyInfo',
+    url: '/custom/demoPeople/copyInfo',
     method: 'post',
     data: data
   })
