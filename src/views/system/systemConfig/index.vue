@@ -8,8 +8,8 @@
             <div slot="header" class="clearfix"><span>系统</span></div>
             <el-row>
               <el-col :span="6">
-                <el-form-item label="后端API地址" prop="backApiUrl">
-                  <el-input v-model="form.backApiUrl" placeholder="请输入后端API地址"/>
+                <el-form-item label="后端API地址" prop="back_api_url">
+                  <el-input v-model="form.back_api_url" placeholder="请输入后端API地址"/>
                 </el-form-item>
               </el-col>
             </el-row>
@@ -26,8 +26,8 @@
             <div slot="header" class="clearfix"><span>后台管理API</span></div>
             <el-row>
               <el-col :span="12">
-                <el-form-item label="后台管理API开关" prop="managerApiLock">
-                  <el-select v-model="form.managerApiLock" placeholder="请选择">
+                <el-form-item label="后台管理API开关" prop="manager_api_lock">
+                  <el-select v-model="form.manager_api_lock" placeholder="请选择">
                     <el-option v-for="item in dict.type.dict_common_lock" :key="item.value" :label="item.label"
                                :value="item.value" :disabled="item.status == 1"
                     ></el-option>
@@ -35,8 +35,8 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="后台管理API秘钥" prop="managerApiKey" v-show="form.managerApiLock == 0">
-                  <el-input v-model="form.managerApiKey" placeholder="请输入后台管理API秘钥"/>
+                <el-form-item label="后台管理API秘钥" prop="manager_api_key" v-show="form.manager_api_lock == 0">
+                  <el-input v-model="form.manager_api_key" placeholder="请输入后台管理API秘钥"/>
                 </el-form-item>
               </el-col>
             </el-row>
@@ -73,8 +73,6 @@ export default {
   dicts: [
     'dict_common_status'
     , 'dict_common_lock'
-    , 'dict_common_save'
-    , 'dict_common_need'
   ],
   components: {},
   data() {
