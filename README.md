@@ -43,7 +43,7 @@ npm run dev
 ```
 # 接口根地址
 # 配置nginx代理
-VUE_APP_BASE_API='/prod-api/my'
+VUE_APP_BASE_API='/prod-api/quick'
 ```
 
 nginx配置（仅供参考）
@@ -51,17 +51,17 @@ nginx配置（仅供参考）
 ```nginx
 server{
         listen 80;
-        server_name myadmin;
+        server_name quick;
         # 代理前端
         location / {
-            root /www/wwwroot/galaxy_dist;
+            root /www/wwwroot/quick_ui;
             try_files $uri $uri/ /index.html;
             index index.html index.htm;
             error_page 405=200$request_uri;
         }
         # 代理后端
         location /prod-api/ {
-            proxy_pass http://127.0.0.1:8033/;
+            proxy_pass http://127.0.0.1:8018/;
             proxy_set_header Host $http_host;
             proxy_redirect off;
             proxy_set_header X-Real-IP $remote_addr;
@@ -79,7 +79,7 @@ server{
 ```nginx
 # 代理后端
 location /prod-api/ {
-    proxy_pass http://127.0.0.1:8033/;
+    proxy_pass http://127.0.0.1:8018/;
     proxy_set_header Host $http_host;
     proxy_redirect off;
     proxy_set_header X-Real-IP $remote_addr;
@@ -102,7 +102,7 @@ location / {
 ```
 # 接口根地址
 # 不配置nginx代理，会暴露后端真实地址
-# VUE_APP_BASE_API='http://192.168.213.130:8033/my'
+# VUE_APP_BASE_API='http://192.168.213.130:8033/quick'
 ```
 #### 第3种：将前端打包到后端的resources/static下
 
@@ -141,8 +141,8 @@ npm run build:spring
 ```yml
 # 测试环境
 server:
-    port: 8033
+    port: 8018
     servlet:
-      context-path: /my
+      context-path: /quick
 ```
-那么后端跑起来之后，前端访问地址为`http://127.0.0.1:8033/my`
+那么后端跑起来之后，前端访问地址为`http://127.0.0.1:8018/quick`
