@@ -16,7 +16,7 @@ import { download } from '@/utils/request'
 
 import './assets/icons' // icon
 import './permission' // permission control
-import { getDicts } from "@/api/common/common";
+import { getDicts } from "@/api/base/common";
 import { parseTime, resetForm, addDateRange, selectDictLabel, selectDictLabels, handleTree } from "@/utils/ruoyi";
 // 分页组件
 import Pagination from "@/components/Pagination";

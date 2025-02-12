@@ -5,7 +5,7 @@ import request from '@/utils/request'
 // 根据字典类型查询字典数据信息
 export function getDicts(dictType) {
   return request({
-    url: '/common/dict/' + dictType,
+    url: '/admin/common/dict/' + dictType,
     method: 'get'
   })
 }
@@ -13,7 +13,7 @@ export function getDicts(dictType) {
 // 获取路由
 export const getRouters = () => {
   return request({
-    url: '/common/getRouters',
+    url: '/admin/common/getRouters',
     method: 'get'
   })
 }

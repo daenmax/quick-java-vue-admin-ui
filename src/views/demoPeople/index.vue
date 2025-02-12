@@ -10,6 +10,21 @@
           @keyup.enter.native="handleList"
         />
       </el-form-item>
+      <el-form-item label="状态" prop="status">
+        <el-select
+          v-model="queryParams.status"
+          placeholder="状态"
+          clearable
+          style="width: 240px"
+        >
+          <el-option
+            v-for="dict in dict.type.dict_common_status"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
 
 
       <el-form-item label="备注" prop="remark">
@@ -67,7 +82,7 @@
           icon="el-icon-edit"
           size="mini"
           :disabled="single"
-          @click="handleUpdate"
+          @click="handleEdit"
         >修改
         </el-button>
       </el-col>
@@ -78,7 +93,7 @@
           icon="el-icon-delete"
           size="mini"
           :disabled="multiple"
-          @click="handleDelete"
+          @click="handleDel"
         >删除
         </el-button>
       </el-col>
@@ -88,7 +103,7 @@
           plain
           icon="el-icon-delete"
           size="mini"
-          @click="removeAll"
+          @click="handleDelAll"
         >全部删除
         </el-button>
       </el-col>
@@ -119,7 +134,7 @@
           icon="el-icon-key"
           size="mini"
           :disabled="multiple"
-          @click="testCall"
+          @click="handleTestCall"
         >呼叫测试
         </el-button>
       </el-col>
@@ -130,11 +145,11 @@
           icon="el-icon-s-help"
           size="mini"
           :disabled="multiple"
-          @click="copyInfo"
+          @click="handleCopyInfo"
         >复制人员信息
         </el-button>
       </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="getPage"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
@@ -152,6 +167,16 @@
           <span>{{ parseTime(scope.row.expireTime) }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="状态" align="center" key="status">
+        <template slot-scope="scope">
+          <el-switch
+            v-model="scope.row.status"
+            active-value="0"
+            inactive-value="1"
+            @change="handleStatusChange(scope.row)"
+          ></el-switch>
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true"/>
       <el-table-column label="创建时间" align="center" prop="createTime" width="160">
         <template slot-scope="scope">
@@ -164,14 +189,14 @@
             size="mini"
             type="text"
             icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
+            @click="handleEdit(scope.row)"
           >修改
           </el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
+            @click="handleDel(scope.row)"
           >删除
           </el-button>
           <el-dropdown size="mini" @command="(command) => handleCommand(command, scope.row)" >
@@ -190,7 +215,7 @@
       :total="total"
       :page.sync="queryParams.pageNum"
       :limit.sync="queryParams.pageSize"
-      @pagination="getList"
+      @pagination="getPage"
     />
 
     <!-- 添加或修改测试数据对话框 -->
@@ -243,6 +268,20 @@
 
         <el-row>
           <el-col :span="24">
+            <el-form-item label="状态" prop="status">
+              <el-radio-group v-model="form.status">
+                <el-radio
+                  v-for="dict in dict.type.dict_common_status"
+                  :key="dict.value"
+                  :label="dict.value"
+                >{{dict.label}}</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="24">
             <el-form-item label="备注" prop="remark">
               <el-input v-model="form.remark" type="textarea" placeholder="请输入备注"></el-input>
             </el-form-item>
@@ -276,7 +315,7 @@
         <div class="el-upload__tip text-center" slot="tip">
           <span>仅允许导入xls、xlsx格式文件。</span>
           <el-link type="primary" :underline="false" style="font-size:12px;vertical-align: baseline;"
-                   @click="importTemplate"
+                   @click="handleImportTemplate"
           >下载模板
           </el-link>
         </div>
@@ -333,7 +372,7 @@
 
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button :loading="buttonLoading" type="primary" @click="submitCopy">生 成</el-button>
+        <el-button :loading="buttonLoading" type="primary" @click="handleCopyInfoSubmit">生 成</el-button>
         <el-button @click="cancelCopy">取 消</el-button>
       </div>
     </el-dialog>
@@ -342,22 +381,27 @@
 
 <script>
 import {
-  apiPage,
-  apiQuery,
-  apiRemove,
-  apiAdd,
-  apiEdit,
-  apiRemoveAll,
-  apiTestCall,
-  apiCopyInfo,
-} from '@/api/custom/demoPeople'
+  page,
+  query,
+  add,
+  edit,
+  del,
+  delAll,
+  changeStatus,
+  testCall,
+  copyInfo,
+  exportData,
+  importData,
+  importTemplate
+} from '@/api/demoPeople/demoPeople'
 import { getToken } from '@/utils/auth'
 
 export default {
-  name: 'EmailUser',
+  name: 'DemoPeople',
   dicts: [
     , 'dict_demo_people_sex'
     , 'dict_common_yes_no'
+    , 'dict_common_status'
   ],
   components: {},
   data() {
@@ -401,7 +445,7 @@ export default {
         // 设置上传的请求头部
         headers: { Authorization: 'Bearer ' + getToken() },
         // 上传的地址
-        url: process.env.VUE_APP_BASE_API + '/demo/people/importData'
+        url: process.env.VUE_APP_BASE_API + importData
       },
       // 查询参数
       queryParams: {
@@ -410,6 +454,7 @@ export default {
         name: undefined,
         remark: undefined,
         sex: undefined,
+        status: undefined,
         createTime: undefined,
         startTime: undefined,
         endTime: undefined
@@ -425,6 +470,9 @@ export default {
         ],
         sex: [
           { required: true, message: '性别不能为空', trigger: 'blur' }
+        ],
+        status: [
+          { required: true, message: '状态不能为空', trigger: 'blur' }
         ]
       },
       // 表单校验
@@ -436,16 +484,16 @@ export default {
     }
   },
   created() {
-    this.getList()
+    this.getPage()
   },
   methods: {
     /** 分页列表 */
-    getList() {
+    getPage() {
       this.loading = true
       this.dateRange = Array.isArray(this.dateRange) ? this.dateRange : []
       this.queryParams.startTime = this.dateRange[0]
       this.queryParams.endTime = this.dateRange[1]
-      apiPage(this.queryParams).then(response => {
+      page(this.queryParams).then(response => {
         this.dataList = response.data.records
         this.total = response.data.total
         this.loading = false
@@ -467,12 +515,12 @@ export default {
       this.resetForm('form')
       this.resetForm('formCopy')
     },
-    /** 搜索按钮操作 */
+    /** 搜索 按钮操作 */
     handleList() {
       this.queryParams.pageNum = 1
-      this.getList()
+      this.getPage()
     },
-    /** 重置按钮操作 */
+    /** 重置 按钮操作 */
     resetQuery() {
       this.dateRange = []
       this.resetForm('queryForm')
@@ -484,55 +532,66 @@ export default {
       this.single = selection.length !== 1
       this.multiple = !selection.length
     },
-    // 更多操作触发
+    /** 更多操作 按钮操作 */
     handleCommand(command, row) {
       switch (command) {
         case "testCall":
-          this.testCall(row);
+          this.handleTestCall(row);
           break;
         case "copyInfo":
-          this.copyInfo(row);
+          this.handleCopyInfo(row);
           break;
         default:
           break;
       }
     },
-    /** 新增按钮操作 */
+    /** 状态按钮操作 */
+    handleStatusChange(row) {
+      let text = row.status === "0" ? "启用" : "停用";
+      this.$modal.confirm('确认要 ' + text + ' ' + row.username + ' 用户吗？').then(function() {
+        return changeStatus(row.id, row.status);
+      }).then(() => {
+        this.$modal.msgSuccess(text + "成功");
+      }).catch(function() {
+        row.status = row.status === "0" ? "1" : "0";
+      });
+    },
+    /** 新增 按钮操作 */
     handleAdd() {
       this.reset()
       this.open = true;
       this.title = "添加";
     },
-    /** 修改按钮操作 */
-    handleUpdate(row) {
+    /** 修改 按钮操作 */
+    handleEdit(row) {
       this.loading = true
       this.reset()
       const id = row.id || this.ids
-      apiQuery(id).then(response => {
+      query(id).then(response => {
         this.loading = false
         this.form = response.data
         this.open = true
         this.title = '修改'
       })
     },
-    /** 提交按钮 */
+    /** 提交 按钮操作 */
     submitForm() {
       this.$refs['form'].validate(valid => {
         if (valid) {
           this.buttonLoading = true
           if (this.form.id != null) {
-            apiEdit(this.form).then(response => {
+            edit(this.form).then(response => {
               this.$modal.msgSuccess('修改成功')
               this.open = false
-              this.getList()
+              this.getPage()
             }).finally(() => {
               this.buttonLoading = false
             })
           } else {
-            apiAdd(this.form).then(response => {
+            add(this.form).then(response => {
               this.$modal.msgSuccess('新增成功')
               this.open = false
-              this.getList()
+              this.getPage()
             }).finally(() => {
               this.buttonLoading = false
             })
@@ -540,36 +599,90 @@ export default {
         }
       })
     },
-    /** 删除按钮操作 */
-    handleDelete(row) {
+    /** 删除 按钮操作 */
+    handleDel(row) {
       const ids = row.id ? [row.id] : this.ids
       //获取ids的数量
       const num = ids.length
       this.$modal.confirm('是否确认删除这 ' + num + ' 条数据 ？').then(() => {
         this.loading = true
-        return apiRemove(ids)
+        return del(ids)
       }).then(() => {
         this.loading = false
-        this.getList()
+        this.getPage()
         this.$modal.msgSuccess('删除成功')
       }).finally(() => {
         this.loading = false
       })
     },
-    /** 导入按钮操作 */
+    /** 全部删除 按钮操作 */
+    handleDelAll() {
+      this.$modal.confirm('是否确认删除全部数据 ？').then(() => {
+        this.loading = true
+        return delAll()
+      }).then(() => {
+        this.loading = false
+        this.getPage()
+        this.$modal.msgSuccess('删除全部数据成功')
+      }).finally(() => {
+        this.loading = false
+      })
+    },
+    /** 呼叫测试 按钮操作 */
+    handleTestCall(row) {
+      const ids = row.id ? [row.id] : this.ids
+      //获取ids的数量
+      const num = ids.length
+      this.$modal.confirm('是否确认测试这 ' + num + ' 条数据 ？').then(() => {
+        this.loading = true
+        return testCall(ids)
+      }).then(() => {
+        this.loading = false
+        this.getPage()
+        this.$modal.msgSuccess('提交测试成功，请稍后刷新查看')
+      }).finally(() => {
+        this.loading = false
+      })
+    },
+     /** 复制人员信息 按钮操作 */
+    handleCopyInfo(row) {
+      this.reset()
+      const ids = row.id ? [row.id] : this.ids
+      const num = ids.length
+      this.formCopy.ids = ids;
+      this.openCopy = true
+      this.titleCopy = '复制人员信息，已选中'+ num + '条数据'
+    },
+     /** 复制人员信息-生成 按钮操作 */
+    handleCopyInfoSubmit() {
+      this.$refs['form'].validate(valid => {
+        if (valid) {
+          this.buttonLoading = true
+          this.formCopy.copyStr = "";
+          copyInfo(this.formCopy).then(response => {
+            this.$modal.msgSuccess('生成成功')
+            this.formCopy.copyStr = response.data.copyStr;
+          }).finally(() => {
+            this.buttonLoading = false
+          })
+        }
+      })
+    },
+
+    /** 导入 按钮操作 */
     handleImport() {
       this.upload.title = '导入'
       this.upload.open = true
     },
     /** 下载模板操作 */
-    importTemplate() {
-      this.download('demo/people/template', {}, `demo_people_template_${new Date().getTime()}.xlsx`)
+    handleImportTemplate() {
+      this.download(importTemplate, {}, `template_${new Date().getTime()}.xlsx`)
     },
-    /** 导出按钮操作 */
+    /** 导出 按钮操作 */
     handleExport() {
-      this.download('demo/people/exportData', {
+      this.download(exportData, {
         ...this.queryParams
-      }, `demo_people_${new Date().getTime()}.xlsx`)
+      }, `data_${new Date().getTime()}.xlsx`)
     },
     // 文件上传中处理
     handleFileUploadProgress(event, file, fileList) {
@@ -580,66 +693,13 @@ export default {
       this.upload.open = false
       this.upload.isUploading = false
       this.$refs.upload.clearFiles()
-      this.$alert(response.msg, '导入成功', { dangerouslyUseHTMLString: true })
-      this.getList()
+      this.$alert( response.data, response.msg, { dangerouslyUseHTMLString: true })
+      this.getPage()
     },
     // 提交上传文件
     submitFileForm() {
       this.$refs.upload.submit()
     },
-    // 全部删除
-    removeAll() {
-      this.$modal.confirm('是否确认删除全部数据 ？').then(() => {
-        this.loading = true
-        return apiRemoveAll()
-      }).then(() => {
-        this.loading = false
-        this.getList()
-        this.$modal.msgSuccess('删除全部数据成功')
-      }).finally(() => {
-        this.loading = false
-      })
-    },
-    // 呼叫测试
-    testCall(row) {
-      const ids = row.id ? [row.id] : this.ids
-      //获取ids的数量
-      const num = ids.length
-      this.$modal.confirm('是否确认测试这 ' + num + ' 条数据 ？').then(() => {
-        this.loading = true
-        return apiTestCall(ids)
-      }).then(() => {
-        this.loading = false
-        this.getList()
-        this.$modal.msgSuccess('提交测试成功，请稍后刷新查看')
-      }).finally(() => {
-        this.loading = false
-      })
-    },
-    // 复制人员信息
-    copyInfo(row) {
-      this.reset()
-      const ids = row.id ? [row.id] : this.ids
-      const num = ids.length
-      this.formCopy.ids = ids;
-      this.openCopy = true
-      this.titleCopy = '复制人员信息，已选中'+ num + '条数据'
-    },
-    // 复制人员信息
-    submitCopy() {
-      this.$refs['form'].validate(valid => {
-        if (valid) {
-          this.buttonLoading = true
-          this.formCopy.copyStr = "";
-          apiCopyInfo(this.formCopy).then(response => {
-            this.$modal.msgSuccess('生成成功')
-            this.formCopy.copyStr = response.data.copyStr;
-          }).finally(() => {
-            this.buttonLoading = false
-          })
-        }
-      })
-    }
   }
 }
 </script>

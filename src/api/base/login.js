@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 登录方法
 export function login(data) {
   return request({
-    url: '/base/login',
+    url: '/admin/login',
     headers: {
       //是否忽略token，不填写此参数的话，默认是false。
       //false是不忽略，即接口需要带上token
@@ -20,7 +20,7 @@ export function login(data) {
 // 获取用户详细信息
 export function getInfo() {
   return request({
-    url: '/base/getInfo',
+    url: '/admin/getInfo',
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function getInfo() {
 // 退出方法
 export function logout() {
   return request({
-    url: '/base/logout',
+    url: '/admin/logout',
     method: 'post'
   })
 }
