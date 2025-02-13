@@ -676,7 +676,7 @@ export default {
     },
     /** 下载模板 按钮操作 */
     handleImportTemplate() {
-      this.download(importTemplate, {}, `template_${new Date().getTime()}.xlsx`)
+      this.download(importTemplate, {}, `data_template_${new Date().getTime()}.xlsx`)
     },
     /** 导出 按钮操作 */
     handleExport() {
