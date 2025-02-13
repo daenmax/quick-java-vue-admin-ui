@@ -693,7 +693,7 @@ export default {
       this.upload.open = false
       this.upload.isUploading = false
       this.$refs.upload.clearFiles()
-      this.$alert( response.data, response.msg, { dangerouslyUseHTMLString: true })
+      this.$alert( response.msg + "->" + response.data, "导入结果", { dangerouslyUseHTMLString: true });
       this.getPage()
     },
     // 提交上传文件
